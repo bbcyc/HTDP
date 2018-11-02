@@ -1,0 +1,21 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname ex308) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require 2htdp/abstraction)
+
+(check-expect (list_from_zero 4) '(0 1 2 3))
+(define (list_from_zero n)
+  (for/list ([ith (in-range 0 n 1)]) ith))
+
+(check-expect (list_from_1 4) '(1 2 3 4))
+(define (list_from_1 n)
+  (for/list ([ith (in-range 1 (+ n 1) 1)]) ith))
+
+(check-expect (list_1_over_n 4) (list 1 (/ 1 2) (/ 1 3) (/ 1 4)))
+(define (list_1_over_n n)
+  (for/list ([ith (in-range 1 (+ n 1) 1)]) (/ 1 ith)))
+
+(check-expect (evens_n 4) '(0 2 4 6))
+(define (evens_n n)
+  (for/list ([ith (in-range 0 n 1)]) (* 2 ith)))
+

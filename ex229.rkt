@@ -1,0 +1,117 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-abbr-reader.ss" "lang")((modname ex229) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require 2htdp/image)
+(require 2htdp/universe)
+
+; An FSM is one of:
+;   – '()
+;   – (cons Transition FSM)
+ 
+(define-struct transition [current next])
+; A Transition is a structure:
+;   (make-transition FSM-State FSM-State)
+
+(define-struct ktransition [current key next])
+; A Transition.v2 is a structure:
+;   (make-ktransition FSM-State KeyEvent FSM-State)
+
+(define abd-fsm
+  (list (make-ktransition "white" "a" "yellow")
+        (make-ktransition "yellow" "b" "yellow")
+        (make-ktransition "yellow" "c" "yellow")
+        (make-ktransition "yellow" "d" "green")))
+ 
+; FSM-State is a Color.
+ 
+; interpretation An FSM represents the transitions that a
+; finite state machine can take from one state to another 
+; in reaction to keystrokes
+
+(define fsm-traffic
+  (list (make-transition "red" "green")
+        (make-transition "green" "yellow")
+        (make-transition "yellow" "red")))
+(define trans1 (make-transition "red" "greem"))
+(define trans2 (make-transition "green" "yellow"))
+(define trans3 (make-transition "yellow" "red"))
+
+(define bw-machine
+  (list (make-transition "black" "white")
+        (make-transition "white" "black")))
+
+; Transition Transition -> Boolean
+; Returns #true if two transitions
+; are equal
+(check-expect (state=? trans1 trans1) #true)
+(check-expect (state=? trans2 trans1) #false)
+(define (state=? t1 t2)
+  (if (and (string=? (transition-current t1) (transition-current t2))
+           (string=? (transition-next t1) (transition-next t2)))
+      #true #false))
+
+(define-struct fs [fsm current])
+; A SimulationState.v2 is a structure: 
+;   (make-fs FSM FSM-State)
+
+; SimulationState.v2 -> Image
+; renders a world state as an image 
+(define (render-state.v2 s)
+  empty-image)
+ 
+; SimulationState.v2 KeyEvent -> SimulationState.v2
+; finds the next state from ke and cs
+(define (find-next-state.v2 cs ke)
+   cs)
+
+; FSM FSM-State -> SimulationState.v2 
+; match the keys pressed with the given FSM 
+(define (simulate.v2 an-fsm s0)
+  (big-bang (make-fs an-fsm s0)
+    [to-draw state-as-colored-square]
+    [on-key find-next-state]))
+
+; SimulationState.v2 -> Image 
+; renders current world state as a colored square 
+ 
+(check-expect (state-as-colored-square
+                (make-fs fsm-traffic "red"))
+              (square 100 "solid" "red"))
+ 
+(define (state-as-colored-square an-fsm)
+  (square 100 "solid" (fs-current an-fsm)))
+
+;(check-expect
+;  (find-next-state (make-fs fsm-traffic "red") "n")
+;  (make-fs fsm-traffic "green"))
+;(check-expect
+;  (find-next-state (make-fs fsm-traffic "red") "a")
+;  (make-fs fsm-traffic "green"))
+;(check-expect
+;  (find-next-state (make-fs fsm-traffic "green") "q")
+;  (make-fs fsm-traffic "yellow"))
+
+(define (find-next-state an-fsm ke)
+  (make-fs
+    (fs-fsm an-fsm)
+    (find (fs-fsm an-fsm) ke (fs-current an-fsm))))
+
+; FSM KeyEvent FSM-State -> FSM-State
+; finds the state representing current in transitions
+; and retrieves the next field 
+;(check-expect (find fsm-traffic "red") "green")
+;(check-expect (find fsm-traffic "green") "yellow")
+;(check-error (find fsm-traffic "black")
+;             "not found: black")
+;(check-expect (find bw-machine "black") "white")
+;(check-expect (find bw-machine "white") "black")
+;(check-error (find bw-machine "blue")
+;             "not found: blue")
+(define (find transitions ke current)
+  (cond
+    [(empty? transitions) (error "not found: " current)]
+    [else (if (and (string=? (ktransition-current (first transitions)) current)
+                   (string=? (ktransition-key (first transitions)) ke))
+                   (ktransition-next (first transitions))
+              (find (rest transitions) ke current))]))
+

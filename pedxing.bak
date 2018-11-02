@@ -1,0 +1,103 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname pedxing) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require 2htdp/universe)
+(require 2htdp/image)
+
+
+(define (tock z)
+      (cond
+        [(string=? (vcat-dir (zoo-vcat z)) "left")
+          (make-zoo 
+            (if (< (- (vcat-pos (zoo-vcat z)) 3) 0)
+              (make-vcat (vcat-pos (zoo-vcat z)) (- (vcat-hap (zoo-vcat z)) 0.1) "right")
+              (make-vcat (- (vcat-pos (zoo-vcat z)) 3) (- (vcat-hap (zoo-vcat z)) 0.1) (vcat-dir (zoo-vcat z))))
+            (make-vcham (modulo (+ (vcham-pos (zoo-vcham z)) 3) (image-width BACKGROUND))
+                        (- (vcham-hap (zoo-vcham z)) .1)
+                        (vcham-col (zoo-vcham z)))
+            (zoo-focus z))]
+        [(string=? (vcat-dir (zoo-vcat z)) "right")
+          (make-zoo
+            (if (> (+ (vcat-pos (zoo-vcat z)) 3) (- (image-width BACKGROUND) (image-width cat1)))
+              (make-vcat (vcat-pos (zoo-vcat z)) (- (vcat-hap (zoo-vcat z)) 0.1) "left")
+              (make-vcat (+ (vcat-pos (zoo-vcat z)) 3) (- (vcat-hap (zoo-vcat z)) 0.1) (vcat-dir (zoo-vcat z))))
+            (make-vcham (modulo (+ (vcham-pos (zoo-vcham z)) 3) (image-width BACKGROUND))
+                        (- (vcham-hap (zoo-vcham z)) .1)
+                        (vcham-col (zoo-vcham z)))
+            (zoo-focus z))]))
+
+
+; WorldState -> Image
+; Takes a world state and returns an image of cat on background
+(define (render z)
+      (place-images/align
+        (list (if (odd? (vcat-pos (zoo-vcat z))) cat1 cat2)
+              (h_gauge (zoo-vcat z))
+              (cham-color (vcham-col (zoo-vcham z)))
+              (h_gauge (zoo-vcham z)))
+        (list (make-posn (vcat-pos (zoo-vcat z)) (+ CAT_Y_OFFSET 1))
+              (make-posn 0 CAT_Y_OFFSET)
+              (make-posn (vcham-pos (zoo-vcham z)) (+ CHAM_Y_OFFSET 1))
+              (make-posn 0 CHAM_Y_OFFSET))
+        "left"
+        "center"
+        BACKGROUND))
+
+(define (keystroke z ke)
+  (cond
+    [(string=? "k" (zoo-focus z))
+      (cond
+        [(key=? "down" ke)
+          (make-zoo
+            (if (< (/ (* (vcat-hap (zoo-vcat z)) 6) 5) 100)
+              (make-vcat (vcat-pos (zoo-vcat z)) (/ (* (vcat-hap (zoo-vcat z)) 6) 5) (vcat-dir (zoo-vcat z)))
+              (make-vcat (vcat-pos (zoo-vcat z)) 100 (vcat-dir (zoo-vcat z))))
+            (zoo-vcham z)
+            (zoo-focus z))]
+        [(key=? "up" ke)
+          (make-zoo
+            (if (< (/ (* (vcat-hap (zoo-vcat z)) 4) 3) 100)
+              (make-vcat (vcat-pos (zoo-vcat z)) (/ (* (vcat-hap (zoo-vcat z)) 4) 3) (vcat-dir (zoo-vcat z)))
+              (make-vcat (vcat-pos (zoo-vcat z)) 100 (vcat-dir (zoo-vcat z))))
+            (zoo-vcham z)
+            (zoo-focus z))]
+        [(key=? "l" ke) (make-zoo (zoo-vcat z) (zoo-vcham z) "l")]
+        [else z])]
+    [(string=? "l" (zoo-focus z))
+      (cond
+        [(key=? "down" ke)
+          (make-zoo
+            (zoo-vcat z)
+            (make-vcham (vcham-pos (zoo-vcham z))
+                        (if (< (+ (vcham-hap (zoo-vcham z)) 2) 100)
+                          (+ (vcham-hap (zoo-vcham z)) 2) 100)
+                          (vcham-col (zoo-vcham z)))
+            (zoo-focus z))]
+        [(key=? "r" ke) (make-zoo
+          (zoo-vcat z)              
+          (make-vcham (vcham-pos (zoo-vcham z)) (vcham-hap (zoo-vcham z)) "red")
+          (zoo-focus z))]
+        [(key=? "b" ke) (make-zoo
+          (zoo-vcat z)              
+          (make-vcham (vcham-pos (zoo-vcham z)) (vcham-hap (zoo-vcham z)) "blue")
+          (zoo-focus z))]
+        [(key=? "g" ke) (make-zoo
+          (zoo-vcat z)              
+          (make-vcham (vcham-pos (zoo-vcham z)) (vcham-hap (zoo-vcham z)) "green")
+          (zoo-focus z))]
+        [(key=? "k" ke) (make-zoo (zoo-vcat z) (zoo-vcham z) "k")]
+        [else z])]))
+  
+; WorldState -> Boolean
+; if happiness is 0, stop the program
+(define (end? z))
+
+; WorldState is a Number representing the number
+; of pixels between the left margin of the scene
+; and the left margin of the cat
+(define (cham-and-cat z)
+  (big-bang z
+      [on-tick tock]
+      [on-key keystroke]
+      [to-draw render]
+      [stop-when end?]))

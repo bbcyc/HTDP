@@ -1,0 +1,16 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname ex310) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require 2htdp/abstraction)
+
+(define input (list (list "a" "b" "c")
+                    (list "dd" "ee" "ff" "gg")
+                    (list "hhh" "ii")
+                    (list "jjjj")))
+(define expect (list 3 4 2 1))
+
+; List-of-list-of-strings -> List-of-numbers
+; Returns list of number of string in each item
+(check-expect (words-on-line input) expect)
+(define (words-on-line lls)
+  (for/list ([l lls]) (length l)))

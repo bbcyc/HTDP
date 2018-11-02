@@ -1,0 +1,35 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname ex134) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+; List-of-names -> Boolean
+; determines whether "Flatt" is on a-list-of-names
+(check-expect (contains? "Flatt" '()) #false)
+(check-expect (contains? "Flatt" (cons "Find" '()))
+              #false)
+(check-expect (contains? "Flatt" (cons "Flatt" '()))
+              #true)
+(check-expect
+  (contains? "Flatt"
+    (cons "A" (cons "Flatt" (cons "C" '()))))
+  #true)
+(check-expect
+  (contains? "Flatt"
+    (cons "A" (cons "Find" (cons "C" '()))))
+  #false)
+
+(check-expect (contains? "Flatt" (cons "Fagan"
+  (cons "Findler"
+    (cons "Fisler"
+      (cons "Flanagan"
+        (cons "Flatt"
+          (cons "Felleisen"
+            (cons "Friedman" '())))))))
+) #true)
+
+(define (contains? value alon)
+  (cond
+    [(empty? alon) #false]
+    [else
+     (cond
+      [(string=? (first alon) value) #true]
+      [else (contains? value (rest alon))])]))

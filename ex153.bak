@@ -1,0 +1,52 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname ex153) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require 2htdp/image)
+
+(define DOT (circle 3 "solid" "red"))
+(define SEAT (rectangle 10 10 "outline" "black"))
+(define BACKGROUND
+  (empty-scene
+   (+ (* 8 (image-width SEAT)) 1)
+   (+ (* 18 (image-height SEAT)) 1)))
+
+; NaturalNumber Image -> Image
+; produces an image or n copies of img
+; in a vertical arrangement
+(check-expect (col 3 SEAT)
+ (place-images/align
+  (list SEAT SEAT SEAT)
+  (list (make-posn 0 0) (make-posn 0 10) (make-posn 0 20))
+  "left"
+  "top"
+  BACKGROUND))
+(define (col n img)
+  {cond
+    [(zero? n) BACKGROUND]
+    [else (place-image/align img 0 (- (* n 10) 10) "left" "top" (col (sub1 n) img))]})
+
+; NaturalNumber Image -> Image
+; produces an image or n copies of img
+; in a vertical arrangement
+(check-expect (row 3 SEAT)
+ (place-images/align
+  (list SEAT SEAT SEAT)
+  (list (make-posn 0 0) (make-posn 10 0) (make-posn 20 0))
+  "left"
+  "top"
+  BACKGROUND))
+(define (row n img)
+  {cond
+    [(zero? n) BACKGROUND]
+    [else (place-image/align img (- (* n 10) 10) 0 "left" "top" (row (sub1 n) img))]})
+
+
+(define HALL (row 8 (col 18 SEAT)))
+
+; List-of-Posns -> Image
+; given a list of posns, returns an image of the
+; lecture hall with red dots at the posns
+(define (add-balloons lop)
+  (cond
+    [(empty? (rest lop)) ...]
+    [else ...]))

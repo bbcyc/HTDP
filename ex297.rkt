@@ -1,0 +1,8 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname ex297) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+; Number Number Posn -> Number
+; Returns distance between (Number, Number) and Posn
+(check-expect (distance-between 0 0 (make-posn 3 4)) 5)
+(define (distance-between x y p)
+  (sqrt (+ (expt (- (posn-x p) x) 2) (expt (- (posn-y p) y) 2))))

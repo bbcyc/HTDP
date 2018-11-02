@@ -1,0 +1,125 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname ex159) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(require 2htdp/image)
+(require 2htdp/universe)
+
+
+(define DOT (circle 3 "solid" "red"))
+(define SEAT (rectangle 10 10 "outline" "black"))
+(define HEIGHT (+ (* 18 (image-height SEAT)) 1))
+(define WIDTH  (+ (* 8 (image-width SEAT)) 1))
+(define BACKGROUND
+  (empty-scene WIDTH HEIGHT))
+
+
+(define LOB (cons (make-posn 30 60)
+              (cons (make-posn 20 40)
+                (cons (make-posn 10 20) '()))))
+
+
+; NaturalNumber Image -> Image
+; produces an image or n copies of img
+; in a vertical arrangement
+(check-expect (col 3 SEAT)
+ (place-images/align
+  (list SEAT SEAT SEAT)
+  (list (make-posn 0 0) (make-posn 0 10) (make-posn 0 20))
+  "left"
+  "top"
+  BACKGROUND))
+(define (col n img)
+  {cond
+    [(zero? n) BACKGROUND]
+    [else (place-image/align img 0 (- (* n 10) 10) "left" "top" (col (sub1 n) img))]})
+
+; NaturalNumber Image -> Image
+; produces an image or n copies of img
+; in a vertical arrangement
+(check-expect (row 3 SEAT)
+ (place-images/align
+  (list SEAT SEAT SEAT)
+  (list (make-posn 0 0) (make-posn 10 0) (make-posn 20 0))
+  "left"
+  "top"
+  BACKGROUND))
+(define (row n img)
+  {cond
+    [(zero? n) BACKGROUND]
+    [else (place-image/align img (- (* n 10) 10) 0 "left" "top" (row (sub1 n) img))]})
+
+(define HALL (row 8 (col 18 SEAT)))
+
+(define-struct pair [balloon# lob])
+; A Pair is a structure (make-pair N List-of-posns)
+; A List-of-posns is one of: 
+; – '()
+; – (cons Posn List-of-posns)
+; interpretation (make-pair n lob) means n balloons 
+; must yet be thrown and added to lob
+
+(define TESTPAIR (make-pair 0 (cons (make-posn 30 60)
+                                    (cons (make-posn 20 40)
+                                          (cons (make-posn 10 20) '())))))
+
+(define NEW-POSN (make-posn (* (random 9) 10) (* (random 19) 10)))  
+
+; Pair -> Pair
+; Each clock tick the balloon# decreases by 1 until it gets to 0
+; and a posn added to lob
+(define (tock w)
+  (cond
+    [(> (pair-balloon# w) 0)
+     (make-pair
+      (- (pair-balloon# w) 1) 
+      (cons (make-posn (* (random 9) 10) (* (random 19) 10)) (pair-lob w)))]
+    [else w]))
+  
+; Pair -> Image
+; Returns an Image of the lecture hall with
+; balloons at posns in pair-lob
+(check-expect (to-image TESTPAIR)
+  (place-images
+   (list DOT DOT DOT)
+   (list (make-posn 10 20)
+         (make-posn 20 40)
+         (make-posn 30 60))
+   HALL))
+(define (to-image w)
+  (cond
+    [(empty? (pair-lob w)) HALL] 
+    [else (place-image
+           DOT
+           (posn-x (first (pair-lob w)))
+           (posn-y (first (pair-lob w)))
+           (to-image (make-pair (pair-balloon# w) (rest (pair-lob w)))))]))
+
+; List-of-Posns -> Image
+; given a list of posns, returns an image of the
+; lecture hall with red dots at the posns
+(check-expect (add-balloons LOB)
+  (place-images
+   (list DOT DOT DOT)
+   (list (make-posn 10 20)
+         (make-posn 20 40)
+         (make-posn 30 60))
+   HALL))
+(define (add-balloons lop)
+  (cond
+    [(empty? (rest lop)) (place-image DOT (posn-x (first lop)) (posn-y (first lop)) HALL)] 
+    [else (place-image
+           DOT
+           (posn-x (first lop))
+           (posn-y (first lop))
+           (add-balloons (rest lop)))]))
+
+(define (initial w)
+  (make-pair (sub1 w) (cons (make-posn (* (random 9) 10) (* (random 19) 10)) '())))
+
+; Number -> ShotWorld
+; main takes the number of balloons and creates
+; an initial ShotWord for big-bang to consume
+(define (main w0)
+  (big-bang (initial w0) 
+    [on-tick tock 1]
+    [to-draw to-image]))
